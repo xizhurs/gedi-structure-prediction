@@ -99,3 +99,5 @@ if __name__ == "__main__":
     )
     model = model.to(device)
     summary(model, (12, 128, 128))
+    output = model(x_s2)
+    print(output[0].shape)
