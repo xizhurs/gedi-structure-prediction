@@ -16,11 +16,19 @@ bands_x = [
     "s2_band9: 945.1nm",
     "s2_band11: 1613.7nm",
     "s2_band12: 2202.4nm",
+    "s2_NDVI",
+    "sunAzimuthAngles",
+    "sunZenithAngles",
+    "viewAzimuthMean",
+    "viewZenithMean",
+    "coords_1",
+    "coords_2",
+    "coords_3",
     "s1_vv_Db_as",
     "s1_vh_Db_as",
     "s1_vv_Db_ds",
     "s1_vh_Db_ds",
-    "HH",
+    "HH", 
     "HV",
     "DEM",
     "slope",
@@ -62,9 +70,6 @@ class CustomTransform:
                     A.HorizontalFlip(p=0.5),
                     A.VerticalFlip(p=0.5),
                     A.Rotate(limit=30, p=0.5),
-                    A.ShiftScaleRotate(
-                        shift_limit=0.05, scale_limit=0.05, rotate_limit=15, p=0.5
-                    ),
                 ]
             )
 
