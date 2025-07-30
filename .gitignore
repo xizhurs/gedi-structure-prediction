@@ -418,4 +418,4 @@ FodyWeavers.xsd
 *.msp
 *.DS_Store
 experiments/.DS_Store
-
+experiments/tests/biomass-unet-gedi-mid-fusion*.ckpt
