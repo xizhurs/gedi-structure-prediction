@@ -70,6 +70,7 @@ def get_dataloader(
         std_y=std_y,
         shuffle=True,
         augmentation=True,
+        persistent_workers=True,
     )
     test_loader = create_tiledataloader_split(
         test_paths,
