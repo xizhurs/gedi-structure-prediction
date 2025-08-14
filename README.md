@@ -1,6 +1,6 @@
 # gedi-structure-estimation
 
-This repository provides code and resources for structure estimation using GEDI data. The project leverages deep learning techniques for processing, pretraining, and fine-tuning models on GEDI datasets.
+This repository provides code and resources for structure estimation (RH95, canopy cover and foliage height diversity) using GEDI data. The project leverages deep learning techniques (UNET) for processing, pretraining with masked autoencoder, and fine-tuning models on GEDI datasets.
 
 ## Project Structure
 
