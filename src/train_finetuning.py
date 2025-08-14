@@ -199,5 +199,5 @@ if __name__ == "__main__":
         max_epochs=100,
         lr=1e-3,
         lr_decay=0.1,
-        weight_decay=1e-4,
+        weight_decay=1e-3,
     )
