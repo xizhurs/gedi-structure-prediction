@@ -1,4 +1,5 @@
 import pickle
+import argparse
 import torch
 import lightning as L
 from glob import glob
@@ -160,7 +161,44 @@ def pretrain(
     trainer.fit(model_regressor, train_loader, val_loader)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Pretrain GEDI structure prediction model"
+    )
+    parser.add_argument(
+        "--max-epochs",
+        type=int,
+        default=100,
+        help="maximum number of epochs (default: 100)",
+    )
+    parser.add_argument(
+        "--lr", type=float, default=1e-3, help="learning rate (default: 1e-3)"
+    )
+    parser.add_argument(
+        "--lr-decay", type=float, default=0.1, help="learning rate decay (default: 0.1)"
+    )
+    parser.add_argument(
+        "--weight-decay", type=float, default=1e-4, help="weight decay (default: 1e-4)"
+    )
+    parser.add_argument(
+        "--sensor-train",
+        type=str,
+        default="s2",
+        choices=["s1", "s2"],
+        help="sensor to train (default: s2)",
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=2, help="batch size (default: 2)"
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
+    args = parse_args()
     pretrain(
-        max_epochs=100, lr=1e-3, lr_decay=0.1, weight_decay=1e-4, sensor_train="s2"
+        max_epochs=args.max_epochs,
+        lr=args.lr,
+        lr_decay=args.lr_decay,
+        weight_decay=args.weight_decay,
+        sensor_train=args.sensor_train,
     )

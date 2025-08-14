@@ -505,7 +505,3 @@ class EncodingBlock(nn.Module):
 
         skip = x
         return self.downsample(x), skip
-
-
-# Code in this file adapted from
-# https://github.com/fepegar/unet/blob/master/unet/decoding.py
