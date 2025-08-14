@@ -1,4 +1,5 @@
 import pickle
+import argparse
 import torch
 import lightning as L
 from pathlib import Path
@@ -193,11 +194,67 @@ def fine_tuning(
     trainer.fit(model_regressor, train_loader, val_loader)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Fine-tune GEDI structure prediction model"
+    )
+    parser.add_argument(
+        "--unfreeze-epoch",
+        type=int,
+        default=10,
+        help="epoch to unfreeze encoder (default: 10)",
+    )
+    parser.add_argument(
+        "--max-epochs",
+        type=int,
+        default=100,
+        help="maximum number of epochs (default: 100)",
+    )
+    parser.add_argument(
+        "--lr", type=float, default=1e-3, help="learning rate (default: 1e-3)"
+    )
+    parser.add_argument(
+        "--lr-decay", type=float, default=0.1, help="learning rate decay (default: 0.1)"
+    )
+    parser.add_argument(
+        "--weight-decay", type=float, default=1e-3, help="weight decay (default: 1e-3)"
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=2, help="batch size (default: 2)"
+    )
+    parser.add_argument(
+        "--s2-file",
+        type=str,
+        default=Path.cwd()
+        / "experiments"
+        / "weights"
+        / "s2-pretrain-epoch=98-val_loss=0.05282.ckpt",
+        metavar="PATH",
+        dest="s2_file",
+        help="path to S2 pretrained weights",
+    )
+    parser.add_argument(
+        "--s1-file",
+        type=str,
+        default=Path.cwd()
+        / "experiments"
+        / "weights"
+        / "s1alos-pretrain-epoch=98-val_loss=0.06877.ckpt",
+        metavar="PATH",
+        dest="s1_file",
+        help="path to S1 pretrained weights",
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
+    args = parse_args()
     fine_tuning(
-        unfreeze_epoch=10,
-        max_epochs=100,
-        lr=1e-3,
-        lr_decay=0.1,
-        weight_decay=1e-3,
+        unfreeze_epoch=args.unfreeze_epoch,
+        max_epochs=args.max_epochs,
+        lr=args.lr,
+        lr_decay=args.lr_decay,
+        weight_decay=args.weight_decay,
+        s2_file=Path.cwd() / args.s2_file,
+        s1_file=Path.cwd() / args.s1_file,
     )

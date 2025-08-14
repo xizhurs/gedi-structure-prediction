@@ -308,3 +308,7 @@ class UNetRegression(nn.Module):
             return self.sigmoid(regression_output)
         else:
             return regression_output
+
+
+# Unet in this file adapted from
+# https://github.com/fepegar/unet/blob/master/unet/decoding.py
