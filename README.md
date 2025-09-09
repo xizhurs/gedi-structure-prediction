@@ -20,6 +20,13 @@ This repository provides code and resources for structure estimation (RH95, cano
   - `test.py`: Example/test script.
   - `visualization.ipynb`: Jupyter notebook for data visualization and analysis.
 
+## Methods
+![detections](experiments/figures/gedi_flowchart_0808.png)
+
+## data
+![detections](experiments/figures/sample_tiles.png)
+
+
 ## Getting Started
 
 1. **Install dependencies**  
@@ -44,7 +51,8 @@ This repository provides code and resources for structure estimation (RH95, cano
    ```
 
 5. **Experiments & Visualization**  
-   Use notebooks in `notebooks/` for analysis and visualization.
+   Use notebooks in `notebooks/` for analysis and ![detections]![detections](experiments/figures/reconstruction.png)
+
 
 ## License
 
