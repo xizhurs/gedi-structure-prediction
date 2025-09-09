@@ -51,7 +51,8 @@ This repository provides code and resources for structure estimation (RH95, cano
    ```
 
 5. **Experiments & Visualization**  
-   Use notebooks in `notebooks/` for analysis and ![detections]![detections](experiments/figures/reconstruction.png)
+   Use notebooks in `notebooks/` for analysis
+   ![detections](experiments/figures/reconstruction.png)
 
 
 ## License
