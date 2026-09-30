@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.10.10"
+          enable-cache: true
+      - run: uv sync --locked --only-group dev
+      - run: uv run --no-sync ruff check
+      - run: uv run --no-sync ruff format --check
+
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: windows-latest
+            python: "3.11"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    env:
+      NO_ALBUMENTATIONS_UPDATE: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.10.10"
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - run: uv sync --locked --extra cpu
+      - run: uv run --no-sync pytest --cov --cov-report=term-missing --cov-report=xml
+      - run: uv build
+        if: runner.os == 'Linux'
+      - name: Verify installed wheel outside checkout
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          uv pip install --python .venv/bin/python --reinstall --no-deps dist/*.whl
+          python_path="$GITHUB_WORKSPACE/.venv/bin/python"
+          cd "$RUNNER_TEMP"
+          "$python_path" -I -c "import gedi_structure_prediction as p; assert 'site-packages' in p.__file__, p.__file__"
+          "$GITHUB_WORKSPACE/.venv/bin/gedi-pretrain" --help
+          "$GITHUB_WORKSPACE/.venv/bin/gedi-finetune" --help
