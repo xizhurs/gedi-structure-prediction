@@ -1,11 +1,18 @@
+from typing import Dict
+
+import lightning as L
 import torch
 import torch.nn as nn
-import lightning as L
 import torch.optim as optim
-from typing import Dict
-from src.utils import DWALoss, custom_mse_loss
-from src.model.mae import Encoder, Decoder, EncodingBlock, ConvolutionalBlock
 from lightning.pytorch.callbacks import BaseFinetuning
+
+from gedi_structure_prediction.model.mae import (
+    ConvolutionalBlock,
+    Decoder,
+    Encoder,
+    EncodingBlock,
+)
+from gedi_structure_prediction.utils import DWALoss, custom_mse_loss
 
 
 class FreezeEncoderCallback(BaseFinetuning):
@@ -15,23 +22,12 @@ class FreezeEncoderCallback(BaseFinetuning):
 
     def freeze_before_training(self, pl_module):
         pl_module.freeze_encoder()
-        for name, param in pl_module.model.encoder_s2.named_parameters():
-            if param.requires_grad:
-                print(f"  ✅ Trainable: {name}")
-            else:
-                print(f"  ❌ Frozen: {name}")
 
     def finetune_function(
         self, pl_module, current_epoch, optimizer, optimizer_idx=None
     ):
         if current_epoch == self.unfreeze_epoch:
-            print(f"Unfreezing encoder at epoch {current_epoch}")
             pl_module.unfreeze_encoder()
-            for name, param in pl_module.model.encoder_s2.named_parameters():
-                if param.requires_grad:
-                    print(f"  ✅ Trainable: {name}")
-                else:
-                    print(f"  ❌ Frozen: {name}")
 
 
 class Mid_fusion_UNetRegression(L.LightningModule):
@@ -52,6 +48,7 @@ class Mid_fusion_UNetRegression(L.LightningModule):
     ):
 
         super().__init__()
+        self.save_hyperparameters(ignore=["s2_weights", "s1_weights", "dem_weights"])
         self.lr = lr
         self.total_iters = total_iters
         self.lr_decay = lr_decay
@@ -75,6 +72,7 @@ class Mid_fusion_UNetRegression(L.LightningModule):
 
         if s2_weights is not None:
             self.model.encoder_s2.load_state_dict(s2_weights)
+        if s1_weights is not None:
             self.model.encoder_s1.load_state_dict(s1_weights)
 
     def freeze_encoder(self):
@@ -90,7 +88,12 @@ class Mid_fusion_UNetRegression(L.LightningModule):
             param.requires_grad = True
 
     def forward(self, x_s2, x_s1, x_dem):
-        return self.model(x_s2, x_s1, x_dem)
+        return self.model(
+            *(
+                torch.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
+                for x in (x_s2, x_s1, x_dem)
+            )
+        )
 
     def training_step(self, batch, batch_idx):
         x_s2, x_s1, x_dem, y_all = batch
@@ -110,9 +113,11 @@ class Mid_fusion_UNetRegression(L.LightningModule):
         total_loss, task_losses = self.dwa_loss(
             [loss_canopy_cover, loss_fhd, loss_height]
         )
-        self.log("train_height_loss", loss_height)
-        self.log("train_canopy_cover_loss", loss_canopy_cover)
-        self.log("train_fhd_loss", loss_fhd)
+        self.log("train_height_loss", loss_height, on_step=False, on_epoch=True)
+        self.log(
+            "train_canopy_cover_loss", loss_canopy_cover, on_step=False, on_epoch=True
+        )
+        self.log("train_fhd_loss", loss_fhd, on_step=False, on_epoch=True)
 
         for i, w in enumerate(self.dwa_loss.loss_weights):
             self.log(f"train_task_{i}_weight", w)
@@ -123,6 +128,7 @@ class Mid_fusion_UNetRegression(L.LightningModule):
             prog_bar=True,
             logger=True,
         )
+        return total_loss
 
     def validation_step(self, val_batch, batch_idx):
         x_s2, x_s1, x_dem, y_all = val_batch
@@ -163,7 +169,7 @@ class Mid_fusion_UNetRegression(L.LightningModule):
             canopy_cover_loss = self.trainer.callback_metrics["train_canopy_cover_loss"]
             fhd_loss = self.trainer.callback_metrics["train_fhd_loss"]
             self.dwa_loss.update_weights(
-                torch.stack([height_loss, canopy_cover_loss, fhd_loss])
+                torch.stack([canopy_cover_loss, fhd_loss, height_loss])
             )
 
     def configure_optimizers(self):

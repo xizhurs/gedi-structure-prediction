@@ -1,23 +1,21 @@
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 def mse_loss_mae(x_pred: torch.Tensor, x_true: torch.Tensor) -> torch.Tensor:
     # Only compute loss over masked areas
-    mask_output = ~torch.isnan(x_pred)
-    mask_target = ~torch.isnan(x_true)
-    mask_nan = mask_output & mask_target
-    output_nonan = x_pred[mask_nan]
-    target_nonan = x_true[mask_nan]
-    loss = F.mse_loss(output_nonan, target_nonan)
-    return loss
+    return custom_mse_loss(x_pred, x_true)
 
 
 def custom_mse_loss(output, target):
-    mask_output = ~torch.isnan(output)
-    mask_target = ~torch.isnan(target)
-    mask = mask_output & mask_target
+    if output.shape != target.shape:
+        raise ValueError("Prediction and target shapes must match")
+    mask = torch.isfinite(target)
+    if not mask.any():
+        raise ValueError("No finite targets available for loss calculation")
+    if not torch.isfinite(output[mask]).all():
+        raise ValueError("Non-finite predictions at valid target locations")
     output_nonan = output[mask]
     target_nonan = target[mask]
     loss = F.mse_loss(output_nonan, target_nonan)
@@ -35,9 +33,9 @@ class DWALoss(nn.Module):
         self.register_buffer("prev_losses", torch.ones(num_tasks))
 
     def forward(self, losses):
-        assert (
-            len(losses) == self.num_tasks
-        ), f"Expected {self.num_tasks} losses, but got {len(losses)}"
+        assert len(losses) == self.num_tasks, (
+            f"Expected {self.num_tasks} losses, but got {len(losses)}"
+        )
         losses = torch.stack(losses)
         weighted_losses = self.loss_weights * losses
         return weighted_losses.sum(), losses

@@ -1,10 +1,12 @@
+from typing import Any, Dict, List, Optional, Sequence
+
+import lightning as L
 import torch
 import torch.nn as nn
-import lightning as L
 import torch.optim as optim
-from typing import Any, Dict, List, Optional, Sequence
 from torch.nn import Module
-from src.utils import mse_loss_mae
+
+from gedi_structure_prediction.utils import mse_loss_mae
 
 
 class MAEUNetPretrain(L.LightningModule):
@@ -32,6 +34,10 @@ class MAEUNetPretrain(L.LightningModule):
         sensor_train="s2",
     ):
         super(MAEUNetPretrain, self).__init__()
+        if not 0 < mask_ratio <= 1:
+            raise ValueError("mask_ratio must be in (0, 1]")
+        self.save_hyperparameters()
+        conv_num_in_layer = list(conv_num_in_layer)
 
         self.lr = lr
         self.lr_decay = lr_decay
@@ -94,7 +100,7 @@ class MAEUNetPretrain(L.LightningModule):
 
         # Create mask
         mask = self.create_mask(x.shape, device)
-        nan_mask = torch.isnan(x)
+        nan_mask = ~torch.isfinite(x)
         combined_mask = torch.logical_or(mask, nan_mask)
         x_masked = x.clone()
         x_masked[combined_mask] = 0  # Set masked pixels or channels to zero
@@ -115,10 +121,10 @@ class MAEUNetPretrain(L.LightningModule):
         for b in range(B):
             if self.mask_channels:
                 for c in range(C):
-                    indices = torch.randperm(H * W)[:num_mask]
+                    indices = torch.randperm(H * W, device=device)[:num_mask]
                     mask[b, c].view(-1)[indices] = True
             else:
-                indices = torch.randperm(H * W)[:num_mask]
+                indices = torch.randperm(H * W, device=device)[:num_mask]
                 mask[b].view(C, -1)[:, indices] = True
 
         return mask

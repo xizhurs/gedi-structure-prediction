@@ -3,8 +3,8 @@ import torch
 import numpy as np
 from glob import glob
 from sklearn.model_selection import train_test_split
-from src.data_loader import create_tiledataloader_split
-from src.model.mae import MAEUNetPretrain
+from gedi_structure_prediction.data_loader import create_tiledataloader_split
+from gedi_structure_prediction.model.mae import MAEUNetPretrain
 from torchsummary import summary
 
 

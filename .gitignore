@@ -420,3 +420,17 @@ FodyWeavers.xsd
 experiments/.DS_Store
 experiments/tests/
 lightning_logs/
+
+# Python tooling and generated artifacts
+.venv/
+.venv-*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage*
+coverage.xml
+htmlcov/
+dist/
+*.egg-info/
+experiments/runs/

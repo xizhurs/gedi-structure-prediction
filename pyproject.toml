@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gedi-structure-prediction"
+version = "0.1.0"
+description = "Multi-sensor UNet training for GEDI vegetation structure prediction"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = "MIT"
+dependencies = ["torch>=2.6,<3", "lightning>=2.5,<3", "numpy>=1.26,<3", "scikit-learn>=1.4,<2", "albumentations>=2,<3", "tensorboard>=2.18,<3"]
+
+[project.optional-dependencies]
+cpu = ["torch>=2.6,<3"]
+notebooks = ["jupyter>=1,<2", "matplotlib>=3.8,<4", "seaborn>=0.13,<1", "torchsummary>=1.5,<2"]
+
+[project.scripts]
+gedi-pretrain = "gedi_structure_prediction.pretrain:main"
+gedi-finetune = "gedi_structure_prediction.train_finetuning:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gedi_structure_prediction"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/gedi_structure_prediction", "tests", "pyproject.toml", "README.md", "LICENSE"]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", extra = "cpu", marker = "sys_platform != 'darwin'" }]
+
+[tool.uv]
+# Newer stringzilla releases require a C++ source build on Windows.
+constraint-dependencies = ["stringzilla<4"]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+source = ["gedi_structure_prediction"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+include = ["src/**/*.py", "tests/**/*.py"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
