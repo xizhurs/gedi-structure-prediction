@@ -1,4 +1,4 @@
-﻿# GEDI structure prediction
+# GEDI structure prediction
 
 Estimate canopy cover (CC), foliage height diversity (FHD), and RH95 from
 Sentinel-2, Sentinel-1, ALOS, DEM, and slope tiles using masked-autoencoder
@@ -18,7 +18,7 @@ uv run --locked --extra cpu gedi-finetune --help
 
 `pyproject.toml` defines the package and dependencies; `uv.lock` records the
 resolved versions. Keep `--extra cpu` on subsequent `uv run` commands to retain
-the CPU environment. Development tools are installed by default; add `--no-dev`
+ the CPU environment. Development tools are installed by default; add `--no-dev`
 for training-only environments. Notebook tools are optional:
 
 ```sh
@@ -121,6 +121,12 @@ commands or `python -m gedi_structure_prediction.pretrain` / `python -m gedi_str
 instead of executing files within `src` directly.
 
 ![Example tiles](experiments/figures/sample_tiles.png)
+
+## Publication
+
+This repository is based on our published paper:
+
+Zhu, Xi, et al. “Mapping agroforestry Above-Ground Biomass using GEDI structural traits and Sentinel-ALOS-2 PALSAR-2 multisensor fusion.” *Science of Remote Sensing* (2026): 100477.
 
 ## License and acknowledgements
 
