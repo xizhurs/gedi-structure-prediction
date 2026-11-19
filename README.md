@@ -18,7 +18,7 @@ uv run --locked --extra cpu gedi-finetune --help
 
 `pyproject.toml` defines the package and dependencies; `uv.lock` records the
 resolved versions. Keep `--extra cpu` on subsequent `uv run` commands to retain
- the CPU environment. Development tools are installed by default; add `--no-dev`
+the CPU environment. Development tools are installed by default; add `--no-dev`
 for training-only environments. Notebook tools are optional:
 
 ```sh
